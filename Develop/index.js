@@ -22,8 +22,8 @@ inquirer
   .then((data) => {
     let choice = data.firstPrompt;
     //switch case here - make functions for each choice, call respective function in each case
-    function handleFirstPrompt(choice)
-      switch (choice) {
+    function handleFirstPrompt(data)
+      switch (data) {
         case "view_depts":
           choice = ``;
           break;
