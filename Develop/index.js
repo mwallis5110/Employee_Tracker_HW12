@@ -1,6 +1,9 @@
 const inquirer = require("inquirer");
+const mysql = require('mysql2');
 
-
+//create constructor objects - functions for each switch case
+//method
+    //return, queries for each
 function firstPrompt() {
 inquirer
   .prompt([
@@ -9,111 +12,142 @@ inquirer
       name: "firstPrompt",
       message: "What would you like to do?",
       choices: [
-        { name: "view all departments", value: "view_depts" },
-        { name: "View all roles", value: "view_roles" },
-        { name: "view all employees", value: "view_employees" },
-        { name: "add a department", value: "add_department" },
-        { name: "add a role", value: "add_role" },
-        { name: "add an employee", value: "add_employee" },
-        { name: "update an employee role", value: "update_role" },
+        'View all departments',
+        'View all roles',
+        'View all employees',
+        'add a department',
+        'add a role',
+        'add an employee',
+        'update an employee role'
       ],
     },
   ])
-  .then((data) => {
-    let choice = data.firstPrompt;
+  .then((answer) => {
+    let choice = answer.firstPrompt;
     //switch case here - make functions for each choice, call respective function in each case
-    function handleFirstPrompt(data)
-      switch (data) {
-        case "view_depts":
-          choice = ``;
+      switch (choice) {
+        case "View Departments":
+          viewDepartments();
           break;
-        case "view_roles":
-          choice = ``;
+        case "View All Roles":
+          viewAllRoles();
           break;
-        case "view_employees":
-          choice = ``;
+        case "View All Employees":
+          viewAllEmployees();
           break;
-        case "add_department":
-          choice = ``;
+        case "Add A Department":
+          addDepartment();
           break;
-        case "add_role":
-          choice = ``;
+        case "Add A Role":
+          addRole();
           break;
-        case "add_employee":
-          choice = ``;
+        case "Add An Employee":
+          addEmployee();
           break;
-        case "update_role":
-          choice = ``;
+        case "Update An Employee's Role":
+          updateEmployeeRole();
           break;
-        default:
-          choice = "";
-          break;
+        case "Quit":
+          return;
       }
-      return choice;
     }
-  )};
+)};
 //Take all prompts, format, re-run first prompt
 
+//db query for
+function viewDepartments() {
+  db.query('SELECT id, title, department.name AS department FROM department', (err, answer) => {
+    if (err) {
+      console.log(err)
+    } else {
+      firstPrompt();
+    }   
+  }
+)};
 
-//How to display departments and IDs dynamically? Jquery maybe
-function viewDepartmentsPrompt() {
-inquirer
-  .prompt([
-    {
-      type: "rawlist",
-      name: "viewDepartmentsPrompt",
-      message: "What would you like to do?",
-      choices: [
-        { name: "view all departments", value: "view_depts" },
-        { name: "View all roles", value: "view_roles" },
-        { name: "view all employees", value: "view_employees" },
-        { name: "add a department", value: "add_department" },
-        { name: "add a role", value: "add_role" },
-        { name: "add an employee", value: "add_employee" },
-        { name: "update an employee role", value: "update_role" },
-      ],
-    },
-  ])};
+function viewAllRoles() {
+  db.query('SELECT * FROM roles', (err, results) => {
+    if (err) {
+      console.log(err)
+    } else {
+      firstPrompt();
+    }   
+  }
+)};
 
-function addDepartmentPrompt() {
-inquirer
-  .prompt(
-    {
+function viewAllEmployees() {
+  db.query('SELECT * from employees', (err, results) => {
+    if (err) {
+      console.log(err)
+    } else {
+      firstPrompt();
+    }   
+  }
+)};
+
+
+function addDepartment() {
+  inquirer
+    .prompt([
+      {
       type: "input",
-      message: "Please type the name of the new department",
-      name: "newDepartment",
-    },
-  )};
-function addRolePrompt() {
+      message: "What is the name of this department?: ",
+      name: "departmentName",
+      } 
+    ])
+
+//Seed data
+.then((response) => {
+  console.log(response);
+  let departmentName = response.name;
+  db.query('INSERT INTO something', (err, answer) => {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log(departmentName);
+      firstPrompt();
+    }   
+  })
+}
+)};
+
+function addRole() {
   inquirer.prompt(
-    {
-      type: "input",
-      message: "Please enter the name of the new role",
-      name: "roleName",
-    },
-     {
-      type: "input",
-      message: "Please enter the salary",
-      name: "roleSalary",
-    },
-    {
-      type: "rawlist",
-      message: "Please select the department",
-      name: "roleDepartment",
-      //Add created departments dynamically
-      choices: [
-        { name: "view all departments", value: "view_depts" },
-        { name: "View all roles", value: "view_roles" },
-        { name: "view all employees", value: "view_employees" },
-        { name: "add a department", value: "add_department" },
-        { name: "add a role", value: "add_role" },
-        { name: "add an employee", value: "add_employee" },
-        { name: "update an employee role", value: "update_role" },
-      ],
-    },
-  )
-};
-function addEmployeePrompt() {
+      {
+        type: "input",
+        message: "Please enter the name of the new role",
+        name: "roleName",
+      },
+      {
+        type: "input",
+        message: "Please enter the salary",
+        name: "roleSalary",
+      },
+      {
+        type: "rawlist",
+        message: "Please select the department",
+        name: "roleDepartment",
+        choices: [
+          //How to add roles based on input?
+        ],
+      },
+    )
+
+//Seed data
+.then((response) => {
+  console.log(response);
+  //let statements for each prompt
+  db.query('INSERT INTO something', (err, answer) => {
+    if (err) {
+      console.log(err)
+    } else {
+      firstPrompt();
+    }   
+  })
+}
+)};
+
+function addEmployee() {
 inquirer
   .prompt(
     {
@@ -130,49 +164,40 @@ inquirer
       type: "rawlist",
       message: "Please select the new employee's manager",
       name: "employeeManger",
-      //Add mamangers dynamically
       choices: [
-        { name: "view all departments", value: "view_depts" },
-        { name: "View all roles", value: "view_roles" },
-        { name: "view all employees", value: "view_employees" },
-        { name: "add a department", value: "add_department" },
-        { name: "add a role", value: "add_role" },
-        { name: "add an employee", value: "add_employee" },
-        { name: "update an employee role", value: "update_role" },
       ],
     },
-  )};
+  )
+.then((response) => {
+  console.log(response);
+  //let statements for each prompt
+  db.query('INSERT INTO something', (err, answer) => {
+    if (err) {
+      console.log(err)
+    } else {
+      firstPrompt();
+    }
+    })
+  }
+)};
+//How would I set this up? Would it have to 
+  function updateEmployeeRole() {
+    //inquirer prompts
+//Seed data
+//.then((response) => {
+  console.log(response);
+  //let statements for each prompt
+  db.query('UPDATE employees, SET role = ? WHERE id = ?, SELECT from ID, Change Role', (err, answer) => {
+    //role = foreign key
+    
+    
+    if (err) {
+      console.log(err)
+    } else {
+      firstPrompt();
+    }   
+  // })
+});
+}; 
 
-function updateRolePrompt() {
-inquirer
-  .prompt(
-    {
-      type: "rawlist",
-      message: "Please select an employee",
-      name: "promotedEmployee",
-      //Add manangers dynamically
-      choices: [
-        { name: "view all departments", value: "view_depts" },
-        { name: "View all roles", value: "view_roles" },
-        { name: "view all employees", value: "view_employees" },
-        { name: "add a department", value: "add_department" },
-        { name: "add a role", value: "add_role" },
-        { name: "add an employee", value: "add_employee" },
-        { name: "update an employee role", value: "update_role" },
-      ],
-    },{
-      type: "rawlist",
-      message: "Please select the employee's new role",
-      name: "promotedEmployeeRole",
-      //Add manangers dynamically
-      choices: [
-        { name: "view all departments", value: "view_depts" },
-        { name: "View all roles", value: "view_roles" },
-        { name: "view all employees", value: "view_employees" },
-        { name: "add a department", value: "add_department" },
-        { name: "add a role", value: "add_role" },
-        { name: "add an employee", value: "add_employee" },
-        { name: "update an employee role", value: "update_role" },
-      ],
-    },
-  )};
+firstPrompt();
