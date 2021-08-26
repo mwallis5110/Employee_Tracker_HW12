@@ -4,7 +4,7 @@ const mysql = require("mysql2");
 const Sequelize = require("sequelize");
 require("dotenv").config();
 
-const db = mysql.createDbConnection(
+const db = mysql.createConnection(
   {
     host: "localhost",
     // MySQL username,
@@ -23,8 +23,9 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.get("/api/movies", (req, res) => {
-  const sql = `SELECT id, movie_name AS title FROM movies`;
+//app.get("/api/movies", (req, res) => {
+  // const sql = `SELECT id, movie_name AS title FROM movies`;
+  const sql = 'USE employees_db';
 
   db.query(sql, (err, rows) => {
     if (err) {
@@ -36,7 +37,7 @@ app.get("/api/movies", (req, res) => {
       data: rows,
     });
   });
-});
+// });
 
 
 // Default response for any other request (Not Found)
