@@ -209,10 +209,10 @@ async function addEmployee() {
   let managerListResults = await returnManagerList();
   console.log(managerListResults[0]);
   let managerListDisplay = managerListResults[0].map((i) => {
-    return `${i.manager}`;
+    return `${i.manager_name}`;
   });
   inquirer
-    .prompt(
+    .prompt([
       {
         type: "input",
         message: "Please enter the new employee's first name",
@@ -234,7 +234,7 @@ async function addEmployee() {
         name: "employeeManger",
         choices: managerListDisplay,
       }
-    )
+    ])
     .then((response) => {
       console.log(response);
       //let statements for each prompt
@@ -257,21 +257,25 @@ async function addEmployee() {
 };
 
 function updateEmployeeRole() {
-  inquirer.prompt(
+  let employeeListResults = returnEmployeeList();
+  console.log(employeeListResults[0]);
+  let employeeListDisplay = employeeListResults[0].map((i) => {
+    return `${i.manager_name}`;
+  });
+  inquirer.prompt([
     {
       type: "list",
       message: "Please select the employee you would like to update",
-      choices: [
-        returnEmployeeList()
-      ] 
+      name: "updatedEmployee",
+      choices: employeeListDisplay,
     }
-  )
+  ])
   
   .then((response) => {
   console.log(response);
-  //let statements for each prompt
+  let employeeName = response.updatedEmployee
   db.query(
-    "UPDATE employees SET role = ? WHERE id = ?;",
+    "UPDATE employees SET role = (?) WHERE id = ?;",
     (err, results) => {
       //role = foreign key
 
@@ -287,8 +291,9 @@ function updateEmployeeRole() {
 }
 
 async function deleteEmployee() {
-  let employeeListResults = await returnEmployeeList();
-  let employeeListDisplay = employeeListResults.map((i) => {
+  let employeeListResults = returnEmployeeList();
+  console.log(employeeListResults[0])
+  let employeeListDisplay = employeeListResults[0].map((i) => {
       return `${i.employee}`;
   });
   inquirer
