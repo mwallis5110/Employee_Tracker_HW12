@@ -34,24 +34,22 @@ function returnManagerName() {
 };
 
 function returnDepartmentList() {
-  return new Promise((resolve, reject) => {
-    db.query(
-      'SELECT id, departments.name AS department FROM departments',
-      (err, results) => {
-        if (err) {
-          console.log(err);
-        } else {
-          const departmentList = results.map((i) => {
-            return `${i.name}`;
-          })
-          resolve(departmentList);
-          console.log(results);
-        }
-      }
-    );
-  });
+    return db.promise().query(
+      'SELECT departments.name AS department FROM departments',
+  );
 };
 
+//Wrote this one myself!
+function returnDepartmentIdAsName() {
+  return db.promise().query(
+    'SELECT '
+  )
+}
+
+function returnEmployeeList() {
+    db.promise().query(
+      "SELECT employees.id, CONCAT(first_name, ' ', last_name) AS employee, employees.role_id AS role FROM roles RIGHT JOIN employees ON roles.title = employees.role_id, employees.manager_id AS manager FROM employees SELF JOIN employees ON manager_id = CONCAT (first_name, ' ', last_name);"
+    )};
 
 //create constructor objects - functions for each switch case
 //method
@@ -71,6 +69,7 @@ function firstPrompt() {
           "Add a role",
           "Add an employee",
           "Update an employee role",
+          "Delete an emplyee",
           "Quit",
         ],
       },
@@ -100,6 +99,9 @@ function firstPrompt() {
           break;
         case "Update an employee role":
           updateEmployeeRole();
+          break;
+        case "Delete an employee":
+          deleteEmployee();
           break;
         case "Quit":
           return;
@@ -140,9 +142,9 @@ function viewAllRoles() {
 }
 
 function viewAllEmployees() {
-  //NOT DONE - SQL syntax error, something to do with 'FROM' and returning employee's manager
+  //DONE
   db.query(
-    "SELECT employees.id, CONCAT(first_name, ' ', last_name) AS employee, employees.role_id AS role FROM roles RIGHT JOIN employees ON roles.title = employees.role_id, employees.manager_id AS manager FROM employees SELF JOIN employees ON manager_id = CONCAT (first_name, ' ', last_name)",
+    "SELECT employees.id, CONCAT(employees.first_name, ' ', employees.last_name) AS full_name, roles.title AS role, CONCAT(manager.first_name, ' ', manager.last_name) AS manager_name FROM employees LEFT JOIN roles ON roles.id = employees.role_id LEFT JOIN employees manager ON employees.manager_id = manager.id;",
     (err, results) => {
       if (err) {
         console.log(err);
@@ -154,7 +156,7 @@ function viewAllEmployees() {
   );
 }
 
-function addDepartment(name) {
+function addDepartment() {
   inquirer
     .prompt([
       {
@@ -170,7 +172,7 @@ function addDepartment(name) {
       let departmentName = response.name;
       //NOT DONE: "department" comes back as null
       db.query(
-        `INSERT INTO departments (name) VALUES (${departmentName});`,
+        `INSERT INTO departments (name) VALUES (?);`, [departmentName],
         (err, results) => {
           if (err) {
             console.log(err);
@@ -183,10 +185,15 @@ function addDepartment(name) {
     });
 }
 
-function addRole() {
+async function addRole() {
+  let departmentListResults = await returnDepartmentList();
+  console.log(departmentListResults[0])
+  let departmentListDisplay = departmentListResults[0].map((i) => {
+      return `${i.department}`;
+  });
   inquirer
     .prompt(
-      {
+      [{
         type: "input",
         message: "Please enter the name of the new role",
         name: "roleName",
@@ -200,18 +207,19 @@ function addRole() {
         type: "rawlist",
         message: "Please select the department",
         name: "roleDepartment",
-        choices: [
-          returnDepartmentList()
-        ],
+        choices: departmentListDisplay,
       }
-    )
+      ])
 
     //Add data via db query
     .then((response) => {
       console.log(response);
+      let roleName = response.roleName;
+      let roleSalary = response.roleSalary;
+      let roleDepartment = response.roleDepartment;
       //let statements for each prompt
       db.query(
-        "INSERT INTO role (title, salary, department_id) VALUES",
+        "INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?);", [roleName, roleSalary, roleDepartment],
         (err, results) => {
           if (err) {
             console.log(err);
@@ -222,6 +230,7 @@ function addRole() {
         }
       );
     });
+  
 }
 
 async function addEmployee() {
@@ -270,16 +279,25 @@ async function addEmployee() {
       );
     });
 }
-//How would I set this up? Would it have to
+
+
 function updateEmployeeRole() {
-  //inquirer prompts
-  //Seed data
-  //.then((response) => {
+  inquirer.prompt(
+    {
+      type: "list",
+      message: "Please select the employee you would like to update",
+      choices: [
+        returnEmployeeList()
+      ] 
+    }
+  )
+  
+  .then((response) => {
   console.log(response);
   //let statements for each prompt
   db.query(
     "UPDATE employees, SET role = ? WHERE id = ?, SELECT from ID, Change Role",
-    (err, answer) => {
+    (err, results) => {
       //role = foreign key
 
       if (err) {
@@ -288,9 +306,36 @@ function updateEmployeeRole() {
         console.table(results);
         firstPrompt();
       }
-      // })
+     })
     }
   );
+}
+
+async function deleteEmployee() {
+  inquirer
+    .prompt({
+      type: "list",
+      message: "Please select the employee you would like to delete",
+      choices: [returnEmployeeList()],
+    })
+    //Seed data
+    .then((response) => {
+      console.log(response);
+      //let statements for each prompt
+      db.query(
+        "DELETE FROM employees WHERE ",
+        (err, results) => {
+          //role = foreign key
+
+          if (err) {
+            console.log(err);
+          } else {
+            console.table(results);
+            firstPrompt();
+          }
+        }
+      );
+    });
 }
 
 firstPrompt();
