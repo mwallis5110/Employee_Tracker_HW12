@@ -14,46 +14,22 @@ const db = mysql.createConnection(
 );
 
 //-------Query functions for prompts-----------
-function returnManagerName() {
-  return new Promise((resolve, reject) => {
-    db.query(
-      'SELECT CONCAT(first_name, " ", last_name) AS name FROM employees WHERE manager_id IS NULL;',
-      (err, results) => {
-        if (err) {
-          console.log(err);
-        } else {
-          const employeeManager = results.map((i) => {
-            return `${i.name}`;
-          })
-          resolve(employeeManager);
-          console.log(results);
-        }
-      }
-    );
-  });
+function returnManagerList() {
+  return db.promise().query(
+    "SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager_name FROM employees LEFT JOIN roles ON roles.id = employees.role_id LEFT JOIN employees manager ON employees.manager_id = manager.id;", 
+  )
 };
 
 function returnDepartmentList() {
     return db.promise().query(
-      'SELECT departments.name AS department FROM departments',
-  );
-};
-
-//Wrote this one myself!
-function returnDepartmentIdAsName() {
-  return db.promise().query(
-    'SELECT '
-  )
-}
+      'SELECT departments.id, departments.name AS department FROM departments;',
+  )};
 
 function returnEmployeeList() {
     db.promise().query(
       "SELECT employees.id, CONCAT(first_name, ' ', last_name) AS employee, employees.role_id AS role FROM roles RIGHT JOIN employees ON roles.title = employees.role_id, employees.manager_id AS manager FROM employees SELF JOIN employees ON manager_id = CONCAT (first_name, ' ', last_name);"
     )};
 
-//create constructor objects - functions for each switch case
-//method
-//return, queries for each
 function firstPrompt() {
   inquirer
     .prompt([
@@ -69,7 +45,7 @@ function firstPrompt() {
           "Add a role",
           "Add an employee",
           "Update an employee role",
-          "Delete an emplyee",
+          "Delete an employee",
           "Quit",
         ],
       },
@@ -110,7 +86,6 @@ function firstPrompt() {
 }
 //Take all prompts, format, re-run first prompt
 
-//db query for
 function viewDepartments() {
   //DONE
   db.query(
@@ -165,14 +140,12 @@ function addDepartment() {
         name: "departmentName",
       },
     ])
-
     //Adds data
     .then((response) => {
       console.log(response);
-      let departmentName = response.name;
-      //NOT DONE: "department" comes back as null
+      let departmentName = response.departmentName;
       db.query(
-        `INSERT INTO departments (name) VALUES (?);`, [departmentName],
+        "INSERT INTO departments VALUES (?);", [departmentName],
         (err, results) => {
           if (err) {
             console.log(err);
@@ -230,10 +203,14 @@ async function addRole() {
         }
       );
     });
-  
-}
+};
 
 async function addEmployee() {
+  let managerListResults = await returnManagerList();
+  console.log(managerListResults[0]);
+  let managerListDisplay = managerListResults[0].map((i) => {
+    return `${i.manager}`;
+  });
   inquirer
     .prompt(
       {
@@ -255,7 +232,7 @@ async function addEmployee() {
         type: "list",
         message: "Please select the new employee's manager",
         name: "employeeManger",
-        choices: [returnManagerName()],
+        choices: managerListDisplay,
       }
     )
     .then((response) => {
@@ -266,8 +243,7 @@ async function addEmployee() {
       let employeeRole = response.employeeRole;
       let managerId = response.employeeManager;
       db.query(
-        `INSERT INTO employees (first_name, last_name, role, manager_id) VALUES (${firstName}, ${lastName}, ${employeeRole}, ${managerId});`,
-        [],
+        "INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);", [firstName, lastName, employeeRole, managerId],
         (err, results) => {
           if (err) {
             console.log(err);
@@ -278,8 +254,7 @@ async function addEmployee() {
         }
       );
     });
-}
-
+};
 
 function updateEmployeeRole() {
   inquirer.prompt(
@@ -296,7 +271,7 @@ function updateEmployeeRole() {
   console.log(response);
   //let statements for each prompt
   db.query(
-    "UPDATE employees, SET role = ? WHERE id = ?, SELECT from ID, Change Role",
+    "UPDATE employees SET role = ? WHERE id = ?;",
     (err, results) => {
       //role = foreign key
 
@@ -312,18 +287,22 @@ function updateEmployeeRole() {
 }
 
 async function deleteEmployee() {
+  let employeeListResults = await returnEmployeeList();
+  let employeeListDisplay = employeeListResults.map((i) => {
+      return `${i.employee}`;
+  });
   inquirer
     .prompt({
       type: "list",
       message: "Please select the employee you would like to delete",
-      choices: [returnEmployeeList()],
+      choices: employeeListDisplay,
     })
     //Seed data
     .then((response) => {
       console.log(response);
-      //let statements for each prompt
+      let employeeDeleteName = response.name;
       db.query(
-        "DELETE FROM employees WHERE ",
+        "DELETE FROM employees WHERE id = ?;", [employeeDeleteName],
         (err, results) => {
           //role = foreign key
 
