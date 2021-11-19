@@ -143,20 +143,20 @@ function viewAllEmployees() {
   );
 }
 
-function addDepartment() {
+function addDepartment() { //WORKS, but should display proper table after completing
   inquirer
     .prompt([
       {
         type: "input",
         message: "What is the name of this department?: ",
-        name: "departmentName",
+        name: "newDepartmentName",
       },
     ])
     //Adds data
     .then((response) => {
-      let departmentName = response.departmentName;
+      let departmentName = response.newDepartmentName;
       db.query(
-        "INSERT INTO departments VALUES (?);",
+        "INSERT INTO departments (name) VALUES (?);",
         [departmentName],
         (err, results) => {
           if (err) {
@@ -171,11 +171,11 @@ function addDepartment() {
 }
 
 async function addRole() {
+  //WORKS, but should display proper table after completing
   let departmentListResults = await returnDepartmentList();
   let departmentListDisplay = departmentListResults[0].map((i) => {
     return { value: i.id, name: i.department };
   });
-  console.log(departmentListDisplay);
   inquirer
     .prompt([
       {
@@ -196,12 +196,10 @@ async function addRole() {
       },
     ])
 
-    //Add data via db query
     .then((response) => {
       let roleName = response.roleName;
       let roleSalary = response.roleSalary;
       let roleDepartment = response.roleDepartment;
-      //let statements for each prompt
       db.query(
         "INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?);",
         [roleName, roleSalary, roleDepartment],
@@ -218,6 +216,7 @@ async function addRole() {
 }
 
 async function addEmployee() {
+  //WORKS, but should display proper table after completing
   let managerListResults = await returnManagerList();
   let managerListDisplay = managerListResults[0].map((i) => {
     return { value: i.manager_id, name: i.manager_name };
@@ -317,8 +316,8 @@ async function updateEmployeeRole() {
       let updatedEmployeeRole = response.employeeRole;
       let updatedEmployeeManager = response.updatedManager;
       db.query(
-        "INSERT INTO employees () VALUES;",
-        [employeeName, updatedEmployeeRole],
+        "UPDATE employees () VALUES;",
+        [employeeName, updatedEmployeeRole, updatedEmployeeManager],
         (err, results) => {
           if (err) {
             console.log(err);
