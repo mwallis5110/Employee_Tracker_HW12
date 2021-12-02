@@ -40,4 +40,4 @@ mwallis5110@gmail.com
 
 
 #### This Readme was generated using a Node.js Readme generator. 
-[Get that open-source generator here.](git@github.com:mwallis5110/Readme_Generator_HW_09.git)
+[Get that open-source generator here.](https://github.com/mwallis5110/Readme_Generator_HW_09)
